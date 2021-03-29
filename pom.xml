@@ -11,7 +11,7 @@
 
 		<!-- 기본설정 -->
 		<encoding>UTF-8</encoding>
-		<java.version>11</java.version>
+		<java.version>1.8</java.version>
 		<skipTests>true</skipTests>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>utf-8</project.reporting.outputEncoding>
