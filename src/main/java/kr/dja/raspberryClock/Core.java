@@ -80,8 +80,8 @@ public class Core
 	private void printTemperature()
 	{
 		byte[] buf = new byte[2];
-		buf[0] = 0x50;
-		buf[1] = 0x4b;
+		buf[0] = 0x4b;
+		buf[1] = 0x50;
 		try
 		{
 			this.tempDevice.read(buf, 0, 2, buf, 0, 2);
