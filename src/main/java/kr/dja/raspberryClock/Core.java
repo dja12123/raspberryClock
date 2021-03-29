@@ -31,12 +31,13 @@ public class Core
 	
 	private SerialCommunicator comm;
 	private ScheduledExecutorService exeService;
-	private I2CBus i2c;
+	private I2CDevice tempDevice;
 	Core()
 	{
         try
 		{
-    		this.i2c = I2CFactory.getInstance(I2CBus.BUS_1);
+    		I2CBus i2c = I2CFactory.getInstance(I2CBus.BUS_1);
+			this.tempDevice = i2c.getDevice(0x48);
 		}
 		catch(IOException | UnsupportedBusNumberException e)
 		{
@@ -83,16 +84,15 @@ public class Core
 		buf[1] = 0x50;
 		try
 		{
-			this.i2c.getDevice(0x48).read(buf, 0, 2);
+			this.tempDevice.read(0x00, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
-		double temperature;
-		System.out.println("temp:"+buf[0] + " " + buf[1]);
-		temperature = buf[0] << 8 | buf[1];
-		temperature *= 0.00390625;
+		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + this.tempDevice.getAddress());
+		int rawValue = buf[0] << 8 | buf[1];
+		double temperature = rawValue * 0.00390625;
 		
 		this.printValue("page0.Temp.txt", String.format("%.2f°C", temperature));
 	}
