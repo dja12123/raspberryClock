@@ -79,19 +79,19 @@ public class Core
 	
 	private void printTemperature()
 	{
-		byte[] buf = new byte[4];
-		buf[0] = 0x11;
-		buf[1] = 0x22;
+		byte[] buf = new byte[2];
+		buf[0] = 0x50;
+		buf[1] = 0x4b;
 		try
 		{
-			this.tempDevice.read(buf, 0, 4, buf, 0, 4);
+			this.tempDevice.read(buf, 0, 2, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
 		double temperature;
-		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + buf[2] + " " + buf[3]);
+		System.out.println("temp:"+buf[0] + " " + buf[1]);
 		temperature = buf[0] << 8 | buf[1];
 		temperature *= 0.00390625;
 		
