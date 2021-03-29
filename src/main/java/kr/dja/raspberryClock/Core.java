@@ -79,12 +79,12 @@ public class Core
 	
 	private void printTemperature()
 	{
-		byte[] buf = new byte[2];
+		byte[] buf = new byte[4];
 		buf[0] = 0x11;
 		buf[1] = 0x22;
 		try
 		{
-			this.tempDevice.read(buf, 0, 2, buf, 0, 2);
+			this.tempDevice.read(buf, 0, 4, buf, 0, 4);
 		}
 		catch(IOException e)
 		{
