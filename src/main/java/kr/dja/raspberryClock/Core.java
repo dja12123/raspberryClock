@@ -91,7 +91,7 @@ public class Core
 			e.printStackTrace();
 		}
 		double temperature;
-		System.out.println("temp:"+buf[0] + " " + buf[1]);
+		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + buf[2] + " " + buf[3]);
 		temperature = buf[0] << 8 | buf[1];
 		temperature *= 0.00390625;
 		
