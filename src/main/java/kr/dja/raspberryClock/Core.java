@@ -57,7 +57,6 @@ public class Core
 	{
 		LocalDateTime now = LocalDateTime.now();
 		String time = timeFormat.format(now);
-		System.out.println(now);
 		this.printValue("page0.Time.txt", time);
 	}
 	
@@ -80,8 +79,6 @@ public class Core
 	private void printTemperature()
 	{
 		byte[] buf = new byte[2];
-		buf[0] = 0x4b;
-		buf[1] = 0x50;
 		try
 		{
 			this.tempDevice.read(0x00, buf, 0, 2);
@@ -90,8 +87,6 @@ public class Core
 		{
 			e.printStackTrace();
 		}
-		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + this.tempDevice.getAddress());
-		
 		int rawValue = (buf[0] & 0xff) << 8 | (buf[1] & 0xff);
 		double temperature = rawValue * 0.00390625;
 		
