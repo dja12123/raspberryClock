@@ -44,7 +44,7 @@ public class Core
 			e.printStackTrace();
 		}
 		
-		this.comm=new SerialCommunicator("COM10", 9600);
+		this.comm=new SerialCommunicator("ttyAMA0", 9600);
 		this.exeService = Executors.newSingleThreadScheduledExecutor();
 		this.printTime();
 		this.printDate();
