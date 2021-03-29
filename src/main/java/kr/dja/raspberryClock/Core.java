@@ -91,7 +91,8 @@ public class Core
 			e.printStackTrace();
 		}
 		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + this.tempDevice.getAddress());
-		int rawValue = buf[0] << 8 | buf[1];
+		
+		int rawValue = (buf[0] & 0xff) << 8 | (buf[1] & 0xff);
 		double temperature = rawValue * 0.00390625;
 		
 		this.printValue("page0.Temp.txt", String.format("%.2f°C", temperature));
