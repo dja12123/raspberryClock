@@ -84,14 +84,14 @@ public class Core
 		buf[1] = 0x50;
 		try
 		{
-			this.tempDevice.read(0x48, buf, 0, 2);
+			this.tempDevice.read(0x00, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
 		double temperature;
-		System.out.println("temp:"+buf[0] + " " + buf[1]);
+		System.out.println("temp:"+buf[0] + " " + buf[1] + " " + this.tempDevice.getAddress());
 		temperature = buf[0] << 8 | buf[1];
 		temperature *= 0.00390625;
 		
