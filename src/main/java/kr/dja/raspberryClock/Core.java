@@ -84,7 +84,7 @@ public class Core
 		buf[1] = 0x50;
 		try
 		{
-			this.tempDevice.read(buf, 0, 2, buf, 0, 2);
+			this.tempDevice.read(0x48, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
