@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PID_LIST=(`ps -ef | grep -E 'java.*raspberryClock' | grep -v -E 'grep|SCREEN|bash' | awk '{print $2}'`)
+PID_LIST=(`ps -ef | grep -E 'java.*raspberryClockProcess' | grep -v -E 'grep|SCREEN|bash' | awk '{print $2}'`)
 
 echo 'running server process count:' ${#PID_LIST[*]}
 if [ 0 -ne ${#PID_LIST[*]} ]
