@@ -116,10 +116,10 @@ public class Core
 	
 	private double readTemperatureMLX90614()
 	{
-		byte[] buf = new byte[3];
+		byte[] buf = new byte[2];
 		try
 		{
-			this.tempDevice.read(0x06, buf, 0, 3);
+			this.tempDevice.read(0x07, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
