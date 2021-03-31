@@ -69,10 +69,10 @@ public class Core
 		LocalDateTime now = LocalDateTime.now();
 		long dayLeftMs = Duration.between(now ,now.toLocalDate().plusDays(1).atStartOfDay()).toMillis();
 		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
+		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::printTime, secondLeftMs + 1002, 1000, TimeUnit.MILLISECONDS);
 		String date = dateFormat.format(now);
 		String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
 		this.exeService.schedule(this::printDate, dayLeftMs + 2, TimeUnit.MILLISECONDS);
-		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::printTime, secondLeftMs + 1002, 1000, TimeUnit.MILLISECONDS);
 		this.printValue("page0.Date.txt", date+"("+week+")");
 		this.printTime();
 	}
