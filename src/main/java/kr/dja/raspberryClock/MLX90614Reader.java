@@ -42,10 +42,7 @@ public class MLX90614Reader
 		{
 			resultMsg.append(msg);
 		}
-
 		process.waitFor();
-
-		process.destroy();
 		if(successBufferReader!=null)
 		{
 			successBufferReader.close();
