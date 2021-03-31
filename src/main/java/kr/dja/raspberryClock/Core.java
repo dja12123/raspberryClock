@@ -94,6 +94,7 @@ public class Core
 		if(!printString.equals(this.beforePrintTemperature))
 		{
 			this.printValue("page0.Temp.txt", printString);
+			this.beforePrintTemperature = printString;
 		}
 	}
 	
