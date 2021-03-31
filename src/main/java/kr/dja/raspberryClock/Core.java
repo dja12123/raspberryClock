@@ -85,7 +85,7 @@ public class Core
 			this.sendDataToNX4827T043_011("page0.Date.txt", date+"("+week+")");
 			this.timeCorrection();
 		}
-		System.out.print("\33[0;0H\33[K");
+		System.out.print("\33[0;0f\33[K");
 		System.out.println(now);
 	}
 
@@ -128,7 +128,7 @@ public class Core
 		}
 		int rawValue = (buf[1] & 0xff) << 8 | (buf[0] & 0xff);
 		double temperature = rawValue * 0.02 - 273.15;
-		System.out.print("\33[1;0H\33[K");
+		System.out.print("\33[1;0f\33[K");
 		System.out.println(temperature + " " + buf[0] + " " + buf[1]);
 		return temperature;
 		
