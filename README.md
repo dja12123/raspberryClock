@@ -1,4 +1,4 @@
-# raspberryClock
+# java raspberry pi clock
 라즈베리파이 시계+체온계
 
 연구실에 있던 재료들 주섬주섬 주워다 만든
