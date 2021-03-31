@@ -3,7 +3,6 @@ package kr.dja.raspberryClock;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,10 +12,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.pi4j.io.i2c.I2CBus;
-import com.pi4j.io.i2c.I2CDevice;
-import com.pi4j.io.i2c.I2CFactory;
-import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
 public class Core
 {
@@ -34,7 +29,7 @@ public class Core
 	private SerialCommunicator comm;
 	private ScheduledExecutorService clockExeService;
 	private ScheduledExecutorService sensorExeService;
-	private I2CDevice tempDevice;
+	private MLX90614Reader temperatureReader;
 	
 	private ScheduledFuture<?> printTimeTask;
 	private LocalDateTime displayTime;
@@ -43,16 +38,7 @@ public class Core
 	
 	Core()
 	{
-        try
-		{
-    		I2CBus i2c = I2CFactory.getInstance(I2CBus.BUS_1);
-			this.tempDevice = i2c.getDevice(0x5A);
-		}
-		catch(IOException | UnsupportedBusNumberException e)
-		{
-			e.printStackTrace();
-		}
-		
+		this.temperatureReader = new MLX90614Reader();
 		this.comm=new SerialCommunicator("ttyS0", 9600);
 		this.clockExeService = Executors.newSingleThreadScheduledExecutor();
 		this.sensorExeService = Executors.newSingleThreadScheduledExecutor();
@@ -116,19 +102,10 @@ public class Core
 	
 	private double readTemperatureMLX90614()
 	{
-		byte[] buf = new byte[2];
-		try
-		{
-			this.tempDevice.read(0x07, buf, 0, 2);
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-		}
-		int rawValue = (buf[1] & 0xff) << 8 | (buf[0] & 0xff);
-		double temperature = rawValue * 0.02 - 273.15;
+		
+		double temperature = this.temperatureReader.readTemperature();
 		System.out.print("\33[2;1f\33[K");
-		System.out.print(temperature + " " + buf[0] + " " + buf[1]);
+		System.out.print("temperature:" + temperature);
 		return temperature;
 		
 	}
