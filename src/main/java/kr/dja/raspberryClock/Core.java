@@ -1,6 +1,5 @@
 package kr.dja.raspberryClock;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;

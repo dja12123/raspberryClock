@@ -15,7 +15,7 @@ public class MLX90614Reader
 		String rawStr;
 		try
 		{
-			rawStr = this.executeCommand("i2cget -y 1 0x5a 0x07 w");
+			rawStr = this.executeCommand("echo `i2cget -y 1 0x5a 0x07 w`");
 		}
 		catch(Exception e)
 		{
@@ -31,7 +31,6 @@ public class MLX90614Reader
 	private String executeCommand(String cmd) throws Exception
 	{
 		BufferedReader successBufferReader=null;
-		BufferedReader errorBufferReader=null;
 		String msg=null;
 		StringBuffer resultMsg=new StringBuffer();
 
@@ -43,12 +42,6 @@ public class MLX90614Reader
 		{
 			resultMsg.append(msg);
 		}
-		errorBufferReader=new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"));
-
-		while((msg=errorBufferReader.readLine())!=null)
-		{
-			resultMsg.append(msg);
-		}
 
 		process.waitFor();
 
@@ -57,11 +50,6 @@ public class MLX90614Reader
 		{
 			successBufferReader.close();
 		}
-		if(errorBufferReader!=null)
-		{
-			errorBufferReader.close();
-		}
-
 		return resultMsg.toString();
 	}
 }
