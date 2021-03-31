@@ -53,6 +53,7 @@ public class Core
 		this.displayDate = now.toLocalDate();
 		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
 		this.printTimeTask = this.clockExeService.scheduleAtFixedRate(this::displayTimeOnLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
+		this.displayDateOnLCD(this.displayDate);
 	}
 	
 	private void displayTimeOnLCD()
@@ -64,21 +65,26 @@ public class Core
 		LocalDate nowDate = now.toLocalDate();
 		if(!nowDate.equals(this.displayDate))
 		{
-			this.displayDate = nowDate;
-			String date = dateFormat.format(now);
-			String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
-			this.sendDataToNX4827T043_011("page0.Date.txt", date+"("+week+")");
+			this.displayDateOnLCD(nowDate);
 			this.timeCorrection();
 		}
 		System.out.print("\33[1;1f\33[K");
 		System.out.print(now);
+	}
+	
+	private void displayDateOnLCD(LocalDate nowDate)
+	{
+		this.displayDate = nowDate;
+		String date = dateFormat.format(nowDate);
+		String week = weekKor.get(nowDate.getDayOfWeek().getValue() - 1);
+		this.sendDataToNX4827T043_011("page0.Date.txt", date+"("+week+")");
 	}
 
 	
 	private void displayTemperatureOnLCD()
 	{
 		double sum = 0;
-		for(int i = 0; i < 1; ++i)
+		for(int i = 0; i < 10; ++i)
 		{
 			sum += this.readTemperatureMLX90614();
 			try
@@ -90,7 +96,7 @@ public class Core
 				e.printStackTrace();
 			}
 		}
-		double temperature = sum / 1;
+		double temperature = sum / 10;
 		String printString = String.format("%.2f°C", temperature);
 		if(!printString.equals(this.beforePrintTemperature))
 		{
