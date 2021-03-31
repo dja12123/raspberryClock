@@ -81,9 +81,6 @@ public class Core
 			String date = dateFormat.format(now);
 			String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
 			this.sendDataToNX4827T043_011("page0.Date.txt", date+"("+week+")");
-		}
-		if(now.getSecond() % 3 == 0)
-		{
 			this.timeCorrection();
 		}
 		System.out.print("\33[1A\33[2K");
