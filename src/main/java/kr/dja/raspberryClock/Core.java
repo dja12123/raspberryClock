@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.pi4j.io.i2c.I2CBus;
@@ -32,6 +33,10 @@ public class Core
 	private SerialCommunicator comm;
 	private ScheduledExecutorService exeService;
 	private I2CDevice tempDevice;
+	
+	private ScheduledFuture<?> printTimeTask;
+	private String beforePrintTemperature;
+	
 	Core()
 	{
         try
@@ -46,11 +51,7 @@ public class Core
 		
 		this.comm=new SerialCommunicator("ttyS0", 9600);
 		this.exeService = Executors.newSingleThreadScheduledExecutor();
-		this.printTime();
 		this.printDate();
-		LocalDateTime now = LocalDateTime.now();
-		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
-		this.exeService.scheduleAtFixedRate(this::printTime, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
 		this.exeService.scheduleWithFixedDelay(this::printTemperature, 0, 500, TimeUnit.MILLISECONDS);
 	}
 	private void printTime()
@@ -58,22 +59,22 @@ public class Core
 		LocalDateTime now = LocalDateTime.now();
 		String time = timeFormat.format(now);
 		this.printValue("page0.Time.txt", time);
+		System.out.print("\33[1A\33[2K");
+		System.out.println(now);
 	}
 	
 	private void printDate()
 	{
+		if(this.printTimeTask != null) this.printTimeTask.cancel(false);
 		LocalDateTime now = LocalDateTime.now();
+		long dayLeftMs = Duration.between(now ,now.toLocalDate().plusDays(1).atStartOfDay()).toMillis();
+		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
 		String date = dateFormat.format(now);
 		String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
+		this.exeService.schedule(this::printDate, dayLeftMs + 2, TimeUnit.MILLISECONDS);
+		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::printTime, secondLeftMs + 1002, 1000, TimeUnit.MILLISECONDS);
 		this.printValue("page0.Date.txt", date+"("+week+")");
-		if(exeService.isShutdown())
-		{
-			return;
-		}
-
-		long dayLeftMs = Duration.between(now ,now.toLocalDate().plusDays(1).atStartOfDay()).toMillis();
-		System.out.println("day"+dayLeftMs);
-		this.exeService.schedule(this::printDate, dayLeftMs, TimeUnit.MILLISECONDS);
+		this.printTime();
 	}
 	
 	private void printTemperature()
@@ -89,8 +90,11 @@ public class Core
 		}
 		int rawValue = (buf[0] & 0xff) << 8 | (buf[1] & 0xff);
 		double temperature = rawValue * 0.00390625;
-		
-		this.printValue("page0.Temp.txt", String.format("%.2f°C", temperature));
+		String printString = String.format("%.2f°C", temperature);
+		if(!printString.equals(this.beforePrintTemperature))
+		{
+			this.printValue("page0.Temp.txt", printString);
+		}
 	}
 	
 	public void printValue(String field, String var)
@@ -107,7 +111,7 @@ public class Core
 	
 	public void close()
 	{
-		this.exeService.shutdown();
+		this.exeService.shutdownNow();
 		this.comm.close();
 	}
 }
