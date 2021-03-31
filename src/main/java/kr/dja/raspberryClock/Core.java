@@ -45,7 +45,7 @@ public class Core
         try
 		{
     		I2CBus i2c = I2CFactory.getInstance(I2CBus.BUS_1);
-			this.tempDevice = i2c.getDevice(0x48);
+			this.tempDevice = i2c.getDevice(0x5A);
 		}
 		catch(IOException | UnsupportedBusNumberException e)
 		{
@@ -55,7 +55,7 @@ public class Core
 		this.comm=new SerialCommunicator("ttyS0", 9600);
 		this.exeService = Executors.newSingleThreadScheduledExecutor();
 		this.timeCorrection();
-		this.exeService.scheduleWithFixedDelay(this::displayTemperatureInLCD, 0, 500, TimeUnit.MILLISECONDS);
+		this.exeService.scheduleWithFixedDelay(this::displayTemperatureOnLCD, 0, 500, TimeUnit.MILLISECONDS);
 	}
 	
 	private void timeCorrection()
@@ -65,22 +65,22 @@ public class Core
 		this.displayTime = now;
 		this.displayDate = now.toLocalDate();
 		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
-		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::displayTimeInLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
+		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::displayTimeOnLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
 	}
 	
-	private void displayTimeInLCD()
+	private void displayTimeOnLCD()
 	{
 		LocalDateTime now = this.displayTime.plusSeconds(1);
 		this.displayTime = now;
 		String time = timeFormat.format(now);
-		this.printValue("page0.Time.txt", time);
+		this.sendDataToNX4827T043_011("page0.Time.txt", time);
 		LocalDate nowDate = now.toLocalDate();
 		if(!nowDate.equals(this.displayDate))
 		{
 			this.displayDate = nowDate;
 			String date = dateFormat.format(now);
 			String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
-			this.printValue("page0.Date.txt", date+"("+week+")");
+			this.sendDataToNX4827T043_011("page0.Date.txt", date+"("+week+")");
 		}
 		if(now.getSecond() % 3 == 0)
 		{
@@ -91,28 +91,35 @@ public class Core
 	}
 
 	
-	private void displayTemperatureInLCD()
+	private void displayTemperatureOnLCD()
+	{
+		double temperature = this.readTemperatureMLX90614();
+		String printString = String.format("%.2f°C", temperature);
+		if(!printString.equals(this.beforePrintTemperature))
+		{
+			this.sendDataToNX4827T043_011("page0.Temp.txt", printString);
+			this.beforePrintTemperature = printString;
+		}
+	}
+	
+	private double readTemperatureMLX90614()
 	{
 		byte[] buf = new byte[2];
 		try
 		{
-			this.tempDevice.read(0x00, buf, 0, 2);
+			this.tempDevice.read(0x07, buf, 0, 2);
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
 		}
 		int rawValue = (buf[0] & 0xff) << 8 | (buf[1] & 0xff);
-		double temperature = rawValue * 0.00390625;
-		String printString = String.format("%.2f°C", temperature);
-		if(!printString.equals(this.beforePrintTemperature))
-		{
-			this.printValue("page0.Temp.txt", printString);
-			this.beforePrintTemperature = printString;
-		}
+		double temperature = rawValue * 0.02 - 273.15;
+		return temperature;
+		
 	}
 	
-	public void printValue(String field, String var)
+	public void sendDataToNX4827T043_011(String field, String var)
 	{
 		byte[] strbyte = (field+"=\""+var+"\"").getBytes(StandardCharsets.UTF_8);
 		ByteBuffer buf = ByteBuffer.allocate(strbyte.length + 3);
