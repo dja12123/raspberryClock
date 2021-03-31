@@ -15,7 +15,7 @@ public class MLX90614Reader
 		String rawStr;
 		try
 		{
-			rawStr = this.executeCommand("/usr/sbin/i2cget -y 1 0x5a 0x07 w");
+			rawStr = this.executeCommand("/usr/sbin/i2cget -y 1 0x5a 0x06 w");
 		}
 		catch(Exception e)
 		{
