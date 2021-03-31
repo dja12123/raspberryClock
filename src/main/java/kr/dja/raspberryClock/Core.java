@@ -93,7 +93,7 @@ public class Core
 	private void displayTemperatureOnLCD()
 	{
 		double sum = 0;
-		for(int i = 0; i < 10; ++i)
+		for(int i = 0; i < 1; ++i)
 		{
 			sum += this.readTemperatureMLX90614();
 			try
@@ -105,7 +105,7 @@ public class Core
 				e.printStackTrace();
 			}
 		}
-		double temperature = sum / 10;
+		double temperature = sum / 1;
 		String printString = String.format("%.2f°C", temperature);
 		if(!printString.equals(this.beforePrintTemperature))
 		{
@@ -120,7 +120,7 @@ public class Core
 		try
 		{
 			this.tempDevice.write((byte)0x07);
-			this.tempDevice.read(0x07, buf, 0, 3);
+			this.tempDevice.read(0x00, buf, 0, 3);
 		}
 		catch(IOException e)
 		{
@@ -128,6 +128,8 @@ public class Core
 		}
 		int rawValue = (buf[1] & 0xff) << 8 | (buf[0] & 0xff);
 		double temperature = rawValue * 0.02 - 273.15;
+		System.out.print("\33[1A\33[2K");
+		System.out.println(temperature + " " + buf[0] + " " + buf[1]);
 		return temperature;
 		
 	}
