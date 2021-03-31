@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,6 +36,8 @@ public class Core
 	private I2CDevice tempDevice;
 	
 	private ScheduledFuture<?> printTimeTask;
+	private LocalDateTime displayTime;
+	private LocalDate displayDate;
 	private String beforePrintTemperature;
 	
 	Core()
@@ -51,33 +54,44 @@ public class Core
 		
 		this.comm=new SerialCommunicator("ttyS0", 9600);
 		this.exeService = Executors.newSingleThreadScheduledExecutor();
-		this.printDate();
-		this.exeService.scheduleWithFixedDelay(this::printTemperature, 0, 500, TimeUnit.MILLISECONDS);
-	}
-	private void printTime()
-	{
-		LocalDateTime now = LocalDateTime.now();
-		String time = timeFormat.format(now);
-		this.printValue("page0.Time.txt", time);
-		System.out.print("\33[1A\33[2K");
-		System.out.println(now);
+		this.timeCorrection();
+		this.exeService.scheduleWithFixedDelay(this::displayTemperatureInLCD, 0, 500, TimeUnit.MILLISECONDS);
 	}
 	
-	private void printDate()
+	private void timeCorrection()
 	{
 		if(this.printTimeTask != null) this.printTimeTask.cancel(false);
 		LocalDateTime now = LocalDateTime.now();
-		long dayLeftMs = Duration.between(now ,now.toLocalDate().plusDays(1).atStartOfDay()).toMillis();
+		this.displayTime = now;
+		this.displayDate = now.toLocalDate();
 		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
-		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::printTime, secondLeftMs + 1002, 1000, TimeUnit.MILLISECONDS);
-		String date = dateFormat.format(now);
-		String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
-		this.exeService.schedule(this::printDate, dayLeftMs + 2, TimeUnit.MILLISECONDS);
-		this.printValue("page0.Date.txt", date+"("+week+")");
-		this.printTime();
+		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::displayTimeInLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
 	}
 	
-	private void printTemperature()
+	private void displayTimeInLCD()
+	{
+		LocalDateTime now = this.displayTime.plusSeconds(1);
+		this.displayTime = now;
+		String time = timeFormat.format(now);
+		this.printValue("page0.Time.txt", time);
+		LocalDate nowDate = now.toLocalDate();
+		if(!nowDate.equals(this.displayDate))
+		{
+			this.displayDate = nowDate;
+			String date = dateFormat.format(now);
+			String week = weekKor.get(now.getDayOfWeek().getValue() - 1);
+			this.printValue("page0.Date.txt", date+"("+week+")");
+		}
+		if(now.getSecond() % 3 == 0)
+		{
+			this.timeCorrection();
+		}
+		System.out.print("\33[1A\33[2K");
+		System.out.println(now);
+	}
+
+	
+	private void displayTemperatureInLCD()
 	{
 		byte[] buf = new byte[2];
 		try
