@@ -32,7 +32,8 @@ public class Core
 	}
 	
 	private SerialCommunicator comm;
-	private ScheduledExecutorService exeService;
+	private ScheduledExecutorService clockExeService;
+	private ScheduledExecutorService sensorExeService;
 	private I2CDevice tempDevice;
 	
 	private ScheduledFuture<?> printTimeTask;
@@ -53,9 +54,10 @@ public class Core
 		}
 		
 		this.comm=new SerialCommunicator("ttyS0", 9600);
-		this.exeService = Executors.newSingleThreadScheduledExecutor();
+		this.clockExeService = Executors.newSingleThreadScheduledExecutor();
+		this.sensorExeService = Executors.newSingleThreadScheduledExecutor();
 		this.timeCorrection();
-		this.exeService.scheduleWithFixedDelay(this::displayTemperatureOnLCD, 0, 500, TimeUnit.MILLISECONDS);
+		this.sensorExeService.scheduleWithFixedDelay(this::displayTemperatureOnLCD, 0, 500, TimeUnit.MILLISECONDS);
 	}
 	
 	private void timeCorrection()
@@ -65,7 +67,7 @@ public class Core
 		this.displayTime = now;
 		this.displayDate = now.toLocalDate();
 		int secondLeftMs = (1000000000 - now.getNano()) /1000000;
-		this.printTimeTask = this.exeService.scheduleAtFixedRate(this::displayTimeOnLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
+		this.printTimeTask = this.clockExeService.scheduleAtFixedRate(this::displayTimeOnLCD, secondLeftMs, 1000, TimeUnit.MILLISECONDS);
 	}
 	
 	private void displayTimeOnLCD()
@@ -90,7 +92,20 @@ public class Core
 	
 	private void displayTemperatureOnLCD()
 	{
-		double temperature = this.readTemperatureMLX90614();
+		double sum = 0;
+		for(int i = 0; i < 10; ++i)
+		{
+			sum += this.readTemperatureMLX90614();
+			try
+			{
+				Thread.sleep(10);
+			}
+			catch(InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		double temperature = sum / 10;
 		String printString = String.format("%.2f°C", temperature);
 		if(!printString.equals(this.beforePrintTemperature))
 		{
@@ -110,7 +125,7 @@ public class Core
 		{
 			e.printStackTrace();
 		}
-		int rawValue = (buf[0] & 0xff) << 8 | (buf[1] & 0xff);
+		int rawValue = (buf[1] & 0xff) << 8 | (buf[0] & 0xff);
 		double temperature = rawValue * 0.02 - 273.15;
 		return temperature;
 		
@@ -130,7 +145,7 @@ public class Core
 	
 	public void close()
 	{
-		this.exeService.shutdownNow();
+		this.clockExeService.shutdownNow();
 		this.comm.close();
 	}
 }
