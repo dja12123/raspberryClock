@@ -5,9 +5,10 @@ import java.io.InputStreamReader;
 
 public class MLX90614Reader
 {
+	private Runtime runtime;
 	public MLX90614Reader()
 	{
-		
+		this.runtime=Runtime.getRuntime();
 	}
 	
 	public double readTemperature()
@@ -30,23 +31,24 @@ public class MLX90614Reader
 
 	private String executeCommand(String cmd) throws Exception
 	{
-		BufferedReader successBufferReader=null;
 		String msg=null;
 		StringBuffer resultMsg=new StringBuffer();
 
-		Runtime runtime=Runtime.getRuntime();
-
-		Process process=runtime.exec(cmd);
-		successBufferReader=new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+		Process process=this.runtime.exec(cmd);
+		process.waitFor();
+		BufferedReader successBufferReader=new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+		BufferedReader errorBufferReader=new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"));
 		while((msg=successBufferReader.readLine())!=null)
 		{
 			resultMsg.append(msg);
 		}
-		process.waitFor();
-		if(successBufferReader!=null)
+		
+		while((msg=errorBufferReader.readLine())!=null)
 		{
-			successBufferReader.close();
+			
 		}
+		process.waitFor();
+		successBufferReader.close();
 		return resultMsg.toString();
 	}
 }
