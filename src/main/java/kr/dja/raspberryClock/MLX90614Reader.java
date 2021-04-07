@@ -24,7 +24,16 @@ public class MLX90614Reader
 			e.printStackTrace();
 			return 0;
 		}
-		int rawValue = Integer.parseInt(rawStr.substring(2, 6), 16);
+		int rawValue;
+		try
+		{
+			rawValue = Integer.parseInt(rawStr.substring(2, 6), 16);
+		}
+		catch(NumberFormatException e)
+		{
+			e.printStackTrace();
+			return 0;
+		}
 		double temperature = rawValue * 0.02 - 273.15;
 		return temperature;
 	}
